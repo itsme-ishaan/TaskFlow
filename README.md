@@ -10,6 +10,9 @@
 TaskFlow ek powerful aur aesthetically pleasing task management application hai. Ise **Glassmorphism UI** principles par design kiya gaya hai, jo ise ek futuristic aur clean look deta hai. 
 
 ---
+## 📸 App Preview
+![Dashboard Screenshot](screenshots/dashboard.png)
+---
 
 ## 🎯 Key Features
 
