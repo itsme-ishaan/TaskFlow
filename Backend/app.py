@@ -3,18 +3,22 @@ from flask_cors import CORS
 import mysql.connector
 from datetime import datetime
 from functools import wraps
+import os
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-change-this-in-production'  # Session ke liye
+
+# Security Tip: Deployment ke waqt environment variable use karein
+app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-this-in-production')
 CORS(app)
 
 # ---------------- DATABASE CONNECTION ---------------- #
 def get_db():
     return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="Uni#21que",
-        database="student_task_db",
+        # PythonAnywhere ya Render pe deploy karte waqt ye details change hogi
+        host=os.environ.get('DB_HOST', 'localhost'),
+        user=os.environ.get('DB_USER', 'root'),
+        password=os.environ.get('DB_PASS', 'Uni#21que'),
+        database=os.environ.get('DB_NAME', 'student_task_db'),
         autocommit=True
     )
 
@@ -57,17 +61,16 @@ def register():
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
-    query = "INSERT INTO users (name, email, password) VALUES (%s, %s, %s)"
-    values = (name, email, password)
-
     try:
+        query = "INSERT INTO users (name, email, password) VALUES (%s, %s, %s)"
+        values = (name, email, password)
         cursor.execute(query, values)
+        return jsonify({"message": "User registered successfully", "success": True})
+    except mysql.connector.Error as err:
+        return jsonify({"error": "User already exists or DB Error", "success": False}), 400
+    finally:
         cursor.close()
         db.close()
-        return jsonify({"message": "User registered successfully", "success": True})
-    except Exception as e:
-        return jsonify({"error": "User already exists", "success": False}), 400
-
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -86,10 +89,8 @@ def login():
     db.close()
 
     if user:
-        # Session mein store karo
         session['user_id'] = user["id"]
         session['user_name'] = user["name"]
-        
         return jsonify({
             "message": "Login successful", 
             "user_id": user["id"],
@@ -98,7 +99,6 @@ def login():
         })
     else:
         return jsonify({"error": "Invalid credentials", "success": False}), 401
-
 
 # ---------------- TASK API ROUTES ---------------- #
 @app.route('/api/tasks', methods=['GET'])
@@ -114,9 +114,7 @@ def get_tasks():
     
     cursor.close()
     db.close()
-    
     return jsonify(tasks)
-
 
 @app.route('/api/tasks', methods=['POST'])
 @login_required
@@ -135,16 +133,14 @@ def add_task():
         INSERT INTO tasks (user_id, title, description, status, due_date, priority, created_at)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
     """
-    values = (user_id, title, description, "pending", due_date, priority, datetime.now())
+    values = (user_id, title, description, "Pending", due_date, priority, datetime.now())
 
     cursor.execute(query, values)
     task_id = cursor.lastrowid
     
     cursor.close()
     db.close()
-
     return jsonify({"message": "Task added successfully", "task_id": task_id, "success": True})
-
 
 @app.route('/api/tasks/<int:task_id>', methods=['PUT'])
 @login_required
@@ -160,9 +156,7 @@ def update_task(task_id):
     
     cursor.close()
     db.close()
-
     return jsonify({"message": "Task updated successfully", "success": True})
-
 
 @app.route('/api/tasks/<int:task_id>', methods=['DELETE'])
 @login_required
@@ -175,9 +169,9 @@ def delete_task(task_id):
     
     cursor.close()
     db.close()
-
     return jsonify({"message": "Task deleted successfully", "success": True})
 
-
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    # Default port 5000, par deployment environments ke liye flexibility di hai
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)

@@ -39,6 +39,17 @@
             --input-bg: rgba(255, 255, 255, 0.6);
         }
 
+        /* PREMIUM MODE (NEW) */
+        [data-theme="premium"] {
+            --bg-dark: #050505;
+            --text: #ffffff;
+            --primary: #FFD700; /* Gold */
+            --accent: #8A2BE2; /* Purple */
+            --glass-bg: rgba(20, 20, 25, 0.8);
+            --glass-border: rgba(255, 215, 0, 0.3);
+            --input-bg: rgba(0, 0, 0, 0.5);
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
@@ -77,6 +88,7 @@
             backdrop-filter: blur(10px);
         }
         .theme-toggle:hover { border-color: var(--primary); color: var(--primary); transform: rotate(20deg); }
+        [data-theme="premium"] .theme-toggle { box-shadow: inset 0 0 10px rgba(255,215,0,0.2); }
 
         /* --- GLASS CARD --- */
         .container {
@@ -92,6 +104,7 @@
             overflow: hidden;
             transition: 0.3s;
         }
+        [data-theme="premium"] .container { box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,215,0,0.05); }
 
         /* LEFT SIDE (Branding) */
         .branding-section {
@@ -174,6 +187,7 @@
         }
 
         input:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(99, 102, 241, 0.2); }
+        [data-theme="premium"] input:focus { box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); }
 
         button.form-btn {
             width: 100%; padding: 15px;
@@ -182,6 +196,8 @@
             color: white; font-size: 1rem; font-weight: 600;
             cursor: pointer; transition: transform 0.2s; margin-top: 10px;
         }
+        
+        [data-theme="premium"] button.form-btn { color: #000; }
 
         button.form-btn:hover { transform: scale(1.02); }
 
@@ -262,7 +278,7 @@
     </div>
 
     <script>
-        // --- THEME SWITCHER LOGIC ---
+        // --- THEME SWITCHER LOGIC (4 THEMES) ---
         function toggleTheme() {
             const html = document.documentElement;
             const icon = document.getElementById('themeIcon');
@@ -276,6 +292,10 @@
                 html.setAttribute('data-theme', 'grey');
                 icon.className = 'fas fa-adjust';
                 localStorage.setItem('theme', 'grey');
+            } else if (current === 'grey') {
+                html.setAttribute('data-theme', 'premium');
+                icon.className = 'fas fa-gem';
+                localStorage.setItem('theme', 'premium');
             } else {
                 html.setAttribute('data-theme', 'dark');
                 icon.className = 'fas fa-moon';
@@ -290,6 +310,7 @@
         if (savedTheme === 'dark') themeIcon.className = 'fas fa-moon';
         else if (savedTheme === 'light') themeIcon.className = 'fas fa-sun';
         else if (savedTheme === 'grey') themeIcon.className = 'fas fa-adjust';
+        else if (savedTheme === 'premium') themeIcon.className = 'fas fa-gem';
 
         // Toggle Login/Signup Form Logic
         function toggleForms() {
